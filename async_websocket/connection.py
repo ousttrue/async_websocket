@@ -1,12 +1,16 @@
 import struct
+import asyncio
 from .constants import OPCODE, CONSTANTS, CLOSESTATUS
+from .masking import mask 
 
 
 class AsyncWebsocketConnection:
-    def __init__(self, host: str, port: int, writer)->None:
+    def __init__(self, host: str, port: int,
+                 writer: asyncio.streams.StreamWriter, use_mask: bool = True)->None:
         self.host = host
         self.port = port
         self.writer = writer
+        self.use_mask = use_mask
 
     def __str__(self)->str:
         return f'({self.host}:{self.port})'
@@ -39,21 +43,23 @@ class AsyncWebsocketConnection:
         header = bytearray()
         payload_length = len(payload)
 
+        mask_flag = CONSTANTS.MASKED if self.use_mask else CONSTANTS.NOT_MASKED
+
         # Normal payload
         if payload_length <= 125:
             header.append(CONSTANTS.FIN | opcode)
-            header.append(payload_length)
+            header.append(mask_flag | payload_length)
 
         # Extended payload
         elif payload_length >= 126 and payload_length <= 65535:
             header.append(CONSTANTS.FIN | opcode)
-            header.append(CONSTANTS.PAYLOAD_LEN_EXT16)
+            header.append(mask_flag | CONSTANTS.PAYLOAD_LEN_EXT16)
             header.extend(struct.pack(">H", payload_length))
 
         # Huge extended payload
         elif payload_length < 18446744073709551616:
             header.append(CONSTANTS.FIN | opcode)
-            header.append(CONSTANTS.PAYLOAD_LEN_EXT64)
+            header.append(mask_flag | CONSTANTS.PAYLOAD_LEN_EXT64)
             header.extend(struct.pack(">Q", payload_length))
 
         else:
@@ -61,4 +67,9 @@ class AsyncWebsocketConnection:
                 "Message is too big. Consider breaking it into chunks.")
 
         self.writer.write(header)
-        self.writer.write(payload)
+        if self.use_mask:
+            mask_key = b'0123'
+            self.writer.write(mask_key)
+            self.writer.write(mask(mask_key, payload))
+        else:
+            self.writer.write(payload)

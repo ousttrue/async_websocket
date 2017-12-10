@@ -19,8 +19,11 @@ class CONSTANTS(IntFlag):
     '''
     FIN = 0x80 # 0
     OPCODE = 0x0f # 0
+
     MASKED = 0x80 # 1
+    NOT_MASKED = 0x00 # 1
     PAYLOAD_LEN = 0x7f # 1
+
     PAYLOAD_LEN_EXT16 = 0x7e # 126
     PAYLOAD_LEN_EXT64 = 0x7f # 127
 
