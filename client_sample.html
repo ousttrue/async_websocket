@@ -1,0 +1,100 @@
+<html>
+
+<head>
+  <title>websocket test</title>
+  <style>
+    html,
+    body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .hbox {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .fill {
+      width: 100%;
+      height: 100%;
+    }
+
+    .vbox {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .grow {
+      flex-grow: 1;
+    }
+
+    #input {
+      height: 2em;
+      vertical-align: middle;
+      border: solid 1px gray;
+    }
+
+    .red {
+      background-color: red;
+      color: white;
+    }
+
+    .green {
+      background-color: green;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div class='fill vbox'>
+    <div class='hbox'>
+      <span id='input' contenteditable='true' class='grow'></span>
+      <button id='button'>send</button>
+    </div>
+    <div id='logger' class='grow'>
+    </div>
+  </div>
+
+  <script>
+    function wsURL() {
+      var protocol = (location.protocol === 'https:') ? 'wss://' : 'ws://';
+      var url = protocol + location.host;
+      if (location.hostname === 'localhost') {
+          url += '/' + location.pathname.split('/')[1]; // add context path
+      }
+      return url;
+  }
+  
+  var loggerElement = document.getElementById('logger');
+  function logger(msg) {
+      loggerElement.innerText += msg + '\n';
+  }
+  
+  var url = wsURL();
+  var ws = new WebSocket(url);
+  
+  ws.addEventListener('open', function (event) {
+      logger('ws#open');
+      ws.send('something');
+  });
+  
+  ws.addEventListener('message', function (event) {
+      logger('ws#message');
+      logger(event.data);
+  });
+
+  var input = document.getElementById('input');
+  var button = document.getElementById('button');
+  function send_input()
+  {
+    ws.send(input.innerText);
+  }
+  button.addEventListener("click", send_input);
+  </script>
+</body>
+
+</html>
