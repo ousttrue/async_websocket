@@ -1,10 +1,12 @@
 from logging import getLogger
 logger = getLogger(__name__)
 
+
 import asyncio
+from typing import Callable, Awaitable, List
 from .connection import AsyncWebsocketConnection
 from .handler import AsyncWebsocketCallbackBase, AsyncWebsocketHandler
-from .http import HttpRequest
+from .http import HttpRequest, HttpHeader
 from .exception import AsyncWebsocketError
 from .handshake import make_handshake_response
 
@@ -13,10 +15,14 @@ class NoLineError(AsyncWebsocketError):
     pass
 
 
+HTTP_SERVICE_TYPE = Callable[[
+    str, str, str, List[HttpHeader], asyncio.streams.StreamWriter], Awaitable[None]]
+
 class AsyncWebsocketServer:
 
     def __init__(self, loop: asyncio.AbstractEventLoop,
-                 callbacks: AsyncWebsocketCallbackBase, http_service)->None:
+                 callbacks: AsyncWebsocketCallbackBase,
+                 http_service: HTTP_SERVICE_TYPE)->None:
         self.loop = loop
         self.http_service = http_service
         self.callbacks = callbacks
