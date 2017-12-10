@@ -6,7 +6,9 @@ For local LAN.
 * based https://github.com/Pithikos/python-websocket-server
 * referenced https://github.com/websocket-client/websocket-client
 
-* use python3 asyncio.streams
-* use typing
+* use python-3.6 asyncio.streams
+* use python-3.6 typing annotations
+* server
+* client
 * continuation
 * byte message
