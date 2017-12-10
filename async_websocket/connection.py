@@ -1,12 +1,12 @@
 import struct
 import asyncio
 from .constants import OPCODE, CONSTANTS, CLOSESTATUS
-from .masking import mask 
+from .masking import mask
 
 
 class AsyncWebsocketConnection:
     def __init__(self, host: str, port: int,
-                 writer: asyncio.streams.StreamWriter, use_mask: bool = True)->None:
+                 writer: asyncio.streams.StreamWriter, use_mask: bool)->None:
         self.host = host
         self.port = port
         self.writer = writer

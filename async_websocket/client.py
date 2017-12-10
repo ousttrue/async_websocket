@@ -43,6 +43,6 @@ async def client_connect_async(loop: asyncio.AbstractEventLoop,
     logger.debug('switch to websocket')
 
     # WebSocket
-    client = AsyncWebsocketConnection(host, port, writer)
+    client = AsyncWebsocketConnection(host, port, writer, True)
     ws = AsyncWebsocketHandler(loop, callbacks, reader, client)
     await ws.handle()

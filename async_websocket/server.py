@@ -3,7 +3,7 @@ logger = getLogger(__name__)
 
 
 import asyncio
-from typing import Callable, Awaitable, List
+from typing import Generator, Callable, List
 from .connection import AsyncWebsocketConnection
 from .handler import AsyncWebsocketCallbackBase, AsyncWebsocketHandler
 from .http import HttpRequest, HttpHeader
@@ -16,7 +16,7 @@ class NoLineError(AsyncWebsocketError):
 
 
 HTTP_SERVICE_TYPE = Callable[[
-    str, str, str, List[HttpHeader], asyncio.streams.StreamWriter], Awaitable[None]]
+    bytes, bytes, List[HttpHeader]], Generator[bytes, None, None]]
 
 class AsyncWebsocketServer:
 
@@ -60,7 +60,7 @@ class AsyncWebsocketServer:
                 # start websocket
                 #
                 client = AsyncWebsocketConnection(
-                    *writer.transport.get_extra_info('peername'), writer)
+                    *writer.transport.get_extra_info('peername'), writer, False)
                 handler = AsyncWebsocketHandler(
                     self.loop, self.callbacks, reader, client)
                 await handler.handle()
@@ -68,7 +68,10 @@ class AsyncWebsocketServer:
                 #
                 # http service
                 #
-                await self.http_service(request.method, request.path, request.headers, writer)
+                for x in self.http_service(request.method, request.path, request.headers):
+                    writer.write(x)
+                writer.write_eof()
+                await writer.drain()
 
         except NoLineError as ex:
             pass
